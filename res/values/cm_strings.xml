@@ -24,4 +24,5 @@
 
     <!-- Start new chat button on the main screen -->
     <string name="start_chat">Start chat</string>
+    <string name="copy_verify_code">Copy Verify Code to Clipboard</string>
 </resources>

@@ -132,8 +132,12 @@
     <string name="notification_video" msgid="4331423498662606204">"视频"</string>
     <string name="notification_vcard" msgid="7658061674440552878">"名片"</string>
     <string name="notification_download_mms" msgid="6206807985355359528">"下载"</string>
-    <string name="notification_reply_via_sms" msgid="6990127304684161722">"通过短信回复"</string>
-    <string name="notification_reply_via_mms" msgid="6706012871186064035">"通过彩信回复"</string>
+    <!-- <string name="notification_reply_via_sms" msgid="6990127304684161722">"通过短信回复"</string> -->
+    <!-- <string name="notification_reply_via_mms" msgid="6706012871186064035">"通过彩信回复"</string> -->
+    <string name="notification_reply_via_sms" msgid="6990127304684161722">"回复"</string>
+    <string name="notification_reply_via_mms" msgid="6706012871186064035">"回复"</string>
+    <string name="notification_mark_as_read" msgid="6706012871186064036">"已读"</string>
+    <string name="notification_copy_verify_code" msgid="6706012871186064037">复制验证码</string>
     <string name="notification_reply_prompt" msgid="1836023392294480241">"回复"</string>
     <plurals name="wearable_participant_count" formatted="false" msgid="3037889420270036143">
       <item quantity="other"><xliff:g id="COUNT_1">%d</xliff:g> 位参与者</item>

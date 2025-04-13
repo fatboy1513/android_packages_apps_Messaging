@@ -20,6 +20,9 @@ package com.android.messaging.receiver;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipDescription;
+import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -28,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.provider.Telephony;
 import android.provider.Telephony.Sms;
+import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -45,7 +49,10 @@ import com.android.messaging.util.PendingIntentConstants;
 import com.android.messaging.util.PhoneUtils;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.lineageos.messaging.util.PrefsUtils;
 
 /**
  * Class that receives incoming SMS messages through android.provider.Telephony.SMS_RECEIVED
@@ -97,6 +104,31 @@ public final class SmsReceiver extends BroadcastReceiver {
     private static final String EXTRA_ERROR_CODE = "errorCode";
     private static final String EXTRA_SUB_ID = "subscription";
 
+    public static String extractVerificationCode(String messageBody) {
+        Pattern pattern = Pattern.compile(
+            "(?<![0-9])([0-9]{6})(?![0-9])|" +  // 优先独立匹配6位
+            "(?<![0-9])([0-9]{4})(?![0-9])|" +  // 次优先匹配4位
+            "(?<![0-9])([0-9]{8})(?![0-9])|" +  // 然后匹配8位
+            "(?<![0-9])([0-9]{5})(?![0-9])"     // 最后匹配5位
+        );
+        
+        Matcher matcher = pattern.matcher(messageBody);
+        
+        // 按优先级顺序查找
+        if (matcher.find()) {
+            if (matcher.group(1) != null) {  // 6位
+                return matcher.group(1);
+            } else if (matcher.group(2) != null) {  // 4位
+                return matcher.group(2);
+            } else if (matcher.group(3) != null) {  // 8位
+                return matcher.group(3);
+            } else if (matcher.group(4) != null) {  // 5位
+                return matcher.group(4);
+            }
+        }
+        return null;
+    }
+
     public static void deliverSmsIntent(final Context context, final Intent intent) {
         final android.telephony.SmsMessage[] messages = getMessagesFromIntent(intent);
 
@@ -120,6 +152,15 @@ public final class SmsReceiver extends BroadcastReceiver {
                 MmsUtils.parseReceivedSmsMessage(context, messages, errorCode);
 
         LogUtil.v(TAG, "SmsReceiver.deliverSmsMessages");
+        if (PrefsUtils.isCopyVerifyCodeEnabled()) {
+            final String code = extractVerificationCode(messages[0].getMessageBody());
+            if (code != null) {
+                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("Verification Code", code);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(context, "验证码已复制: " + code, Toast.LENGTH_SHORT).show();
+            }
+        }
 
         final long nowInMillis =  System.currentTimeMillis();
         final long receivedTimestampMs = MmsUtils.getMessageDate(messages[0], nowInMillis);

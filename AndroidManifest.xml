@@ -454,6 +454,22 @@
                 android:resource="@xml/widget_conversation" />
         </receiver>
 
+        <receiver
+            android:name=".receiver.MarkAsReadReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.android.messaging.MARK_AS_READ" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receiver.CopyVerifyCodeReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.android.messaging.COPY_VERIFY_CODE" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".widget.WidgetConversationListService"
             android:exported="false"
