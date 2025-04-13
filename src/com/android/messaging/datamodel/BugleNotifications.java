@@ -21,6 +21,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -52,8 +53,10 @@ import com.android.messaging.Factory;
 import com.android.messaging.R;
 import com.android.messaging.datamodel.MessageNotificationState.BundledMessageNotificationState;
 import com.android.messaging.datamodel.MessageNotificationState.ConversationLineInfo;
+import com.android.messaging.datamodel.MessageNotificationState.MessageLineInfo;
 import com.android.messaging.datamodel.MessageNotificationState.MultiConversationNotificationState;
 import com.android.messaging.datamodel.MessageNotificationState.MultiMessageNotificationState;
+import com.android.messaging.datamodel.MessageNotificationState.NotificationLineInfo;
 import com.android.messaging.datamodel.action.MarkAsReadAction;
 import com.android.messaging.datamodel.action.MarkAsSeenAction;
 import com.android.messaging.datamodel.action.RedownloadMmsAction;
@@ -63,6 +66,9 @@ import com.android.messaging.datamodel.media.MediaRequest;
 import com.android.messaging.datamodel.media.MediaResourceManager;
 import com.android.messaging.datamodel.media.MessagePartVideoThumbnailRequestDescriptor;
 import com.android.messaging.datamodel.media.UriImageRequestDescriptor;
+import com.android.messaging.receiver.CopyVerifyCodeReceiver;
+import com.android.messaging.receiver.MarkAsReadReceiver;
+import com.android.messaging.receiver.SmsReceiver;
 import com.android.messaging.sms.MmsSmsUtils;
 import com.android.messaging.sms.MmsUtils;
 import com.android.messaging.ui.UIIntents;
@@ -166,7 +172,7 @@ public class BugleNotifications {
                     + " conversationId = " + conversationId
                     + " coverage = " + coverage);
         }
-    Assert.isNotMainThread();
+        Assert.isNotMainThread();
         checkInitialized();
         if ((coverage & UPDATE_MESSAGES) != 0) {
             createMessageNotification(silent, conversationId);
@@ -801,13 +807,35 @@ public class BugleNotifications {
         final int replyLabelRes = requiresMms ? R.string.notification_reply_via_mms :
             R.string.notification_reply_via_sms;
 
-        final NotificationCompat.Action.Builder actionBuilder =
+        NotificationCompat.Action.Builder actionBuilder =
                 new NotificationCompat.Action.Builder(R.drawable.ic_wear_reply,
                         context.getString(replyLabelRes), replyPendingIntent);
         final RemoteInput.Builder remoteInputBuilder = new RemoteInput.Builder(Intent.EXTRA_TEXT);
         remoteInputBuilder.setLabel(context.getString(R.string.notification_reply_prompt));
         actionBuilder.addRemoteInput(remoteInputBuilder.build());
         notifBuilder.addAction(actionBuilder.build());
+
+        PendingIntent markAsReadIntent = createMarkAsReadPendingIntent(context, conversationId);
+        actionBuilder =
+                new NotificationCompat.Action.Builder(R.drawable.ic_wear_reply,
+                        context.getString(R.string.notification_mark_as_read), markAsReadIntent);
+        notifBuilder.addAction(actionBuilder.build());
+
+        final NotificationLineInfo lineInfo = convInfo.mLineInfos.get(0);
+        if (lineInfo != null) {
+            try {
+                String verifyCode = SmsReceiver.extractVerificationCode(((MessageLineInfo)lineInfo).mText.toString());
+                if (verifyCode != null) {
+                    PendingIntent copyVerifyCodeIntent = createCopyVerifyCodePendingIntent(context, conversationId, verifyCode);
+                    actionBuilder =
+                            new NotificationCompat.Action.Builder(R.drawable.ic_wear_reply,
+                                    context.getString(R.string.notification_copy_verify_code), copyVerifyCodeIntent);
+                    notifBuilder.addAction(actionBuilder.build());
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
 
         // Support the action on a wearable device
         final NotificationCompat.Action.Builder wearActionBuilder =
@@ -818,6 +846,31 @@ public class BugleNotifications {
         remoteInputBuilder.setChoices(choices);
         wearActionBuilder.addRemoteInput(remoteInputBuilder.build());
         wearableExtender.addAction(wearActionBuilder.build());
+    }
+
+    private static PendingIntent createCopyVerifyCodePendingIntent(Context context, String conversationId, String verifyCode) {
+        Intent intent = new Intent(context, CopyVerifyCodeReceiver.class);
+        intent.setAction("com.android.messaging.COPY_VERIFY_CODE");
+        intent.putExtra("conversation_id", conversationId);
+        intent.putExtra("verify_code", verifyCode);
+        return PendingIntent.getBroadcast(
+            context,
+            1001,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+    }
+
+    private static PendingIntent createMarkAsReadPendingIntent(Context context, String conversationId) {
+        Intent intent = new Intent(context, MarkAsReadReceiver.class);
+        intent.setAction("com.android.messaging.MARK_AS_READ");
+        intent.putExtra("conversation_id", conversationId);
+        return PendingIntent.getBroadcast(
+            context,
+            1002,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
     }
 
     private static void addDownloadMmsAction(final NotificationCompat.Builder notifBuilder,

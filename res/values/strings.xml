@@ -252,6 +252,8 @@
     <string name="notification_reply_via_sms">Reply via SMS</string>
     <!-- Notification action label for MMS reply (visible on wearable device only). [CHAR LIMIT=15] -->
     <string name="notification_reply_via_mms">Reply via MMS</string>
+    <string name="notification_mark_as_read">Mark as Read</string>
+    <string name="notification_copy_verify_code">Copy Verify Code</string>
     <!-- Notification voice reply prompt (visible on wearable device only). [CHAR LIMIT=15] -->
     <string name="notification_reply_prompt">Reply</string>
     <string name="ellipsis" translatable="false">...</string>

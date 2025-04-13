@@ -39,4 +39,18 @@ public class PrefsUtils {
                 R.bool.swipe_right_deletes_conversation_default);
         return prefs.getBoolean(prefKey, defaultValue);
     }
+
+    /**
+     * Returns whether or not swipe to dismiss in the ConversationListFragment deletes
+     * the conversation rather than archiving it.
+     * @return hopefully true
+     */
+    public static boolean isCopyVerifyCodeEnabled() {
+        final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
+        final Context context = Factory.get().getApplicationContext();
+        final String prefKey = context.getString(R.string.copy_verify_code_key);
+        final boolean defaultValue = context.getResources().getBoolean(
+                R.bool.copy_verify_code_key_default);
+        return prefs.getBoolean(prefKey, defaultValue);
+    }
 }
