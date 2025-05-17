@@ -205,6 +205,13 @@ public abstract class CursorRecyclerAdapter<VH extends RecyclerView.ViewHolder>
             throw new IllegalStateException("couldn't move cursor to position " + position);
         }
         bindViewHolder(holder, mContext, mCursor);
+
+        // // 判断是否为最后一项
+        // if (position == getItemCount() - 1) {
+        //     holder.divider.setVisibility(View.GONE);
+        // } else {
+        //     holder.divider.setVisibility(View.VISIBLE);
+        // }
     }
     /**
      * Bind an existing view to the data pointed to by cursor

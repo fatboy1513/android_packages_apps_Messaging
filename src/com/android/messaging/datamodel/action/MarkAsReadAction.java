@@ -45,6 +45,7 @@ public class MarkAsReadAction extends Action implements Parcelable {
      * Mark all the messages as read for a particular conversation.
      */
     public static void markAsRead(final String conversationId) {
+        android.util.Log.e("cjw", "cjw MarkAsReadAction.markAsRead " + conversationId);
         final MarkAsReadAction action = new MarkAsReadAction(conversationId);
         action.start();
     }
@@ -56,6 +57,7 @@ public class MarkAsReadAction extends Action implements Parcelable {
     @Override
     protected Object executeAction() {
         final String conversationId = actionParameters.getString(KEY_CONVERSATION_ID);
+        android.util.Log.e("cjw", "cjw MarkAsReadAction.executeAction " + conversationId);
 
         // TODO: Consider doing this in background service to avoid delaying other actions
         final DatabaseWrapper db = DataModel.get().getDatabase();

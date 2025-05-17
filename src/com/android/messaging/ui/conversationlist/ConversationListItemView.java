@@ -70,7 +70,7 @@ import java.util.List;
  */
 public class ConversationListItemView extends FrameLayout implements OnClickListener,
         OnLongClickListener, OnLayoutChangeListener {
-    static final int UNREAD_SNIPPET_LINE_COUNT = 3;
+    static final int UNREAD_SNIPPET_LINE_COUNT = 1;
     static final int NO_UNREAD_SNIPPET_LINE_COUNT = 1;
     private int mListItemReadColor;
     private int mListItemUnreadColor;
